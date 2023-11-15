@@ -1,0 +1,174 @@
+#!/bin/bash
+
+# Define the version
+VERSION="v0.1.0"
+
+# Define the usage information
+usage() {
+    echo "Usage: internsctl [options]"
+    echo "Options:"
+    echo "  --help                             Display this help message."
+    echo "  --version                          Display the version of internsctl."
+    echo "  cpu getinfo                        Get CPU information (similar to lscpu)."
+    echo "  memory getinfo                     Get memory information (similar to free)."
+    echo "  user create <username>             Create a new user with the given username."
+    echo "  user list                          List all regular users."
+    echo "  user list --sudo-only              List users with sudo permissions."
+    echo "  file getinfo [options] <file-name> Get information about a file."
+    echo "    Options:"
+    echo "      --size, -s                      Print file size."
+    echo "      --permissions, -p               Print file permissions."
+    echo "      --owner, -o                     Print file owner."
+    echo "      --last-modified, -m             Print last modified time of the file."
+}
+
+# Define the welcome message
+welcome() {
+    echo "Welcome to internsctl $VERSION!"
+    echo "This command is designed to help with your operations."
+}
+
+# Define the main function for file information retrieval
+file_getinfo() {
+    local file_name="$1"
+
+    if [ -z "$file_name" ]; then
+        echo "Error: Missing file name."
+        exit 1
+    fi
+
+    # Display file information based on options
+    if [ "$show_size" = true ]; then
+        echo "Size(B): $(stat --format=%s "$file_name")"
+    fi
+
+    if [ "$show_permissions" = true ]; then
+        echo "Permissions: $(stat --format=%A "$file_name")"
+    fi
+
+    if [ "$show_owner" = true ]; then
+        echo "Owner: $(stat --format=%U "$file_name")"
+    fi
+
+    if [ "$show_last_modified" = true ]; then
+        echo "Last Modified: $(stat --format=%y "$file_name")"
+    fi
+}
+
+# Define the main function
+main() {
+    case "$1" in
+        --help)
+            usage
+            ;;
+        --version)
+            echo "internsctl $VERSION"
+            ;;
+        cpu)
+            case "$2" in
+                getinfo)
+                    lscpu
+                    ;;
+                *)
+                    echo "Error: Unknown sub-command for 'cpu'. Use 'internsctl cpu getinfo' for CPU information."
+                    exit 1
+                    ;;
+            esac
+            ;;
+        memory)
+            case "$2" in
+                getinfo)
+                    free
+                    ;;
+                *)
+                    echo "Error: Unknown sub-command for 'memory'. Use 'internsctl memory getinfo' for memory information."
+                    exit 1
+                    ;;
+            esac
+            ;;
+        user)
+            case "$2" in
+                create)
+                    if [ -z "$3" ]; then
+                        echo "Error: Missing username. Use 'internsctl user create <username>' to create a new user."
+                        exit 1
+                    else
+                        sudo adduser "$3"
+                        echo "User '$3' created successfully."
+                    fi
+                    ;;
+                list)
+                    if [ "$3" == "--sudo-only" ]; then
+                        grep -Po '^sudo.+:\K.*$' /etc/group | tr ',' '\n'
+                    else
+                        getent passwd | grep -E '/(home|Users)/[^:]+/[^/]+/?$' | cut -d: -f1
+                    fi
+                    ;;
+                *)
+                    echo "Error: Unknown sub-command for 'user'. Use 'internsctl user create <username>', 'internsctl user list', or 'internsctl user list --sudo-only'."
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        file)
+            case "$2" in
+                getinfo)
+                    shift 2  # Shift to process options
+
+                    # Initialize variables for options
+                    show_size=false
+                    show_permissions=false
+                    show_owner=false
+                    show_last_modified=false
+
+                    # Process options
+                    while [ "$#" -gt 0 ]; do
+                        case "$1" in
+                            --size | -s)
+                                show_size=true
+                                ;;
+                            --permissions | -p)
+                                show_permissions=true
+                                ;;
+                            --owner | -o)
+                                show_owner=true
+                                ;;
+                            --last-modified | -m)
+                                show_last_modified=true
+                                ;;
+                            *)
+                                file_getinfo "$1"
+                                exit 0
+                                ;;
+                        esac
+                        shift
+                    done
+
+                    echo "Error: Missing file name. Use 'internsctl file getinfo [options] <file-name>' to get information about a file."
+                    exit 1
+                    ;;
+                *)
+                    echo "Error: Unknown sub-command for 'file'. Use 'internsctl file getinfo [options] <file-name>' to get information about a file."
+                    exit 1
+                    ;;
+            esac
+            ;;
+        *)
+            echo "Error: Unknown option. Use 'internsctl --help' for usage information."
+            exit 1
+            ;;
+    esac
+}
+
+# Check if there are no arguments provided
+if [ $# -eq 0 ]; then
+    welcome
+    usage
+    echo "Please provide an option. Use 'internsctl --help' for usage information."
+    exit 1
+fi
+
+# Call the main function with the provided arguments
+main "$@"
+

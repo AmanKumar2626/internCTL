@@ -1,0 +1,76 @@
+.\" Manpage for internsctl
+.\" Contact: Aman S <amanjgd2626@gmail.com>
+.TH INTERNCTL 1 "November 2023" "v0.1.0" "Internsctl Manual"
+
+.SH NAME
+internsctl \- perform various system operations
+
+.SH SYNOPSIS
+.B internsctl
+[\fIOPTION\fR] \fISUBCOMMAND\fR [\fIARGS\fR]
+
+.SH DESCRIPTION
+.B internsctl
+is a command-line tool that provides various system operations made as a assesment for XenonStack.
+
+.SH OPTIONS
+.TP
+.BR --help " Display help information."
+.TP
+.BR --version " Display the version of internsctl."
+
+.SH SUBCOMMANDS
+.TP
+.BR cpu getinfo " Get CPU information (similar to lscpu)."
+.TP
+.BR memory getinfo " Get memory information (similar to free)."
+.TP
+.BR user create " Create a new user with the given username."
+.TP
+.BR user list " List all regular users."
+.TP
+.BR user list --sudo-only " List users with sudo permissions."
+.TP
+.BR file getinfo " Get information about a file."
+.TP
+.BR file getinfo --size " Print file size."
+.TP
+.BR file getinfo --permissions " Print file permissions."
+.TP
+.BR file getinfo --owner " Print file owner."
+.TP
+.BR file getinfo --last-modified " Print last modified time of the file."
+
+.SH EXAMPLES
+.TP
+.B internsctl cpu getinfo
+.TP
+.B internsctl memory getinfo
+.TP
+.B internsctl user create <username>
+.TP
+.B internsctl user list
+.TP
+.B internsctl user list --sudo-only
+.TP
+.B internsctl file getinfo --size sample.txt
+.TP
+.B internsctl file getinfo --permissions sample.txt
+.TP
+.B internsctl file getinfo --owner sample.txt
+.TP
+.B internsctl file getinfo --last-modified sample.txt
+
+.SH SEE ALSO
+.BR lscpu(1), free(1), adduser(8), stat(1)
+
+.SH AUTHOR
+This manual page was written by Aman kumar  <amanjgd2626@gmail.com>.
+
+.SH COPYRIGHT
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+.SH BUGS
+Report bugs to: <amanjgd2626@gmail.com>
+
